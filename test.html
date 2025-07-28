@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>SpecChecker 測試頁面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        
+        .test-12px {
+            font-size: 12px;
+            line-height: 16px; /* 正確的行高 */
+            margin-bottom: 20px;
+        }
+        
+        .test-14px {
+            font-size: 14px;
+            line-height: 20px; /* 正確的行高 */
+            margin-bottom: 20px;
+        }
+        
+        .test-16px {
+            font-size: 16px;
+            line-height: 24px; /* 正確的行高 */
+            margin-bottom: 20px;
+        }
+        
+        .test-wrong-size {
+            font-size: 15px; /* 不在規範中的字級 */
+            line-height: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-wrong-lineheight {
+            font-size: 16px; /* 正確的字級 */
+            line-height: 20px; /* 錯誤的行高，應該是 24px */
+            margin-bottom: 20px;
+        }
+        
+        .test-18px {
+            font-size: 18px;
+            line-height: 28px; /* 正確的行高 */
+            margin-bottom: 20px;
+        }
+        
+        .test-unitless-lineheight {
+            font-size: 16px;
+            line-height: 1.5; /* 無單位行高，實際為 24px */
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            line-height: 32px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SpecChecker 字體規範測試</h1>
+    
+    <div class="test-12px">
+        這是 12px 字級，行高 16px（符合規範）
+    </div>
+    
+    <div class="test-14px">
+        這是 14px 字級，行高 20px（符合規範）
+    </div>
+    
+    <div class="test-16px">
+        這是 16px 字級，行高 24px（符合規範）
+    </div>
+    
+    <div class="test-wrong-size">
+        這是 15px 字級，行高 20px（字級不符合規範）
+    </div>
+    
+    <div class="test-wrong-lineheight">
+        這是 16px 字級，行高 20px（行高不符合規範，應該是 24px）
+    </div>
+    
+    <div class="test-18px">
+        這是 18px 字級，行高 28px（符合規範）
+    </div>
+    
+    <div class="test-unitless-lineheight">
+        這是 16px 字級，無單位行高 1.5（實際 24px，符合規範）
+    </div>
+    
+    <p>請使用 SpecChecker 檢測這些元素，測試字體大小和行高檢測功能。</p>
+</body>
+</html>

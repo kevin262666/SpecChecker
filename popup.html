@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 320px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      margin: 0;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .logo {
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
+      background: linear-gradient(45deg, #4f46e5, #7c3aed);
+      border-radius: 4px;
+    }
+    
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1f2937;
+      flex: 1;
+    }
+    
+    .version {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 400;
+    }
+    
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    
+    .toggle-label {
+      font-weight: 500;
+      color: #374151;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: #d1d5db;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .toggle.active {
+      background: #4f46e5;
+    }
+    
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    
+    .toggle.active .toggle-thumb {
+      transform: translateX(20px);
+    }
+    
+    .button {
+      width: 100%;
+      padding: 12px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    
+    .button:hover {
+      background: #4338ca;
+    }
+    
+    .button.secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+    
+    .button.secondary:hover {
+      background: #e5e7eb;
+    }
+    
+    .stats {
+      padding: 12px;
+      background: #fef3c7;
+      border-radius: 6px;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo"></div>
+    <div class="title">SpecChecker</div>
+    <div class="version" id="version">v1.1.0</div>
+  </div>
+  
+  <div class="toggle-container">
+    <span class="toggle-label">啟用檢查</span>
+    <div class="toggle" id="enableToggle">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+  
+  <button class="button" id="scanBtn">開始掃描</button>
+  <button class="button secondary" id="settingsBtn">設定規範</button>
+  <button class="button secondary" id="reportBtn">檢查報告</button>
+  
+  <div class="stats" id="stats" style="display: none;">
+    已檢查 <span id="checkedCount">0</span> 個元素，
+    發現 <span id="issueCount">0</span> 個問題
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
