@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SpecChecker",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "UI/UX design specification checker for frontend development",
   "permissions": [
     "activeTab",

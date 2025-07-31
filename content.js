@@ -539,7 +539,7 @@ class SpecChecker {
     const headerDiv = document.createElement('div');
     headerDiv.textContent = `${element.tagName.toLowerCase()}${element.className ? '.' + element.className.split(' ').join('.') : ''}`;
 
-    let content = `<div style="color: #60a5fa; font-weight: bold; margin-bottom: 8px;">${headerDiv.innerHTML}</div>`;
+    let content = `<div style="color: #60a5fa; font-weight: bold; margin-bottom: 8px;">${this.escapeHtml(headerDiv.textContent)}</div>`;
     
     content += this.formatStyleInfo(styles);
     
@@ -844,22 +844,23 @@ class SpecChecker {
     }, 1000);
   }
 
+  // HTML 轉義函數 - 防止 XSS 攻擊
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   generateReportHTML() {
-    // HTML 轉義函數
-    const escapeHtml = (text) => {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    };
     
     const checkedElements = parseInt(this.scanResults.checkedElements) || 0;
     const issuesCount = Array.isArray(this.scanResults.issues) ? this.scanResults.issues.length : 0;
     
     const issuesHTML = Array.isArray(this.scanResults.issues) 
       ? this.scanResults.issues.map(issue => {
-          const elementText = escapeHtml(issue.element || '');
+          const elementText = this.escapeHtml(issue.element || '');
           const violationsHTML = Array.isArray(issue.violations)
-            ? issue.violations.map(v => `<div class="violation">• ${escapeHtml(v)}</div>`).join('')
+            ? issue.violations.map(v => `<div class="violation">• ${this.escapeHtml(v)}</div>`).join('')
             : '';
           return `
             <div class="issue">
@@ -888,7 +889,7 @@ class SpecChecker {
       <body>
         <div class="header">
           <h1>SpecChecker 檢查報告</h1>
-          <p>檢查時間: ${escapeHtml(new Date().toLocaleString('zh-TW'))}</p>
+          <p>檢查時間: ${this.escapeHtml(new Date().toLocaleString('zh-TW'))}</p>
         </div>
         
         <div class="summary">

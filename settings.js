@@ -16,24 +16,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadSettings() {
-  console.log('正在載入設定...');
+  // console.log('正在載入設定...');
   
   // 先獲取預設值
   const defaultRules = getDefaultRules();
-  console.log('預設規則:', defaultRules);
+  // console.log('預設規則:', defaultRules);
   
   // 從儲存中讀取設定
   const result = await chrome.storage.sync.get(['specRules']);
   let rules = result.specRules;
-  console.log('從儲存讀取的規則:', rules);
+  // console.log('從儲存讀取的規則:', rules);
   
   // 強制使用預設值（臨時解決方案 - 直到問題解決）
-  console.log('強制使用預設值');
+  // console.log('強制使用預設值');
   rules = defaultRules;
   await chrome.storage.sync.set({ specRules: rules });
   
   // 顯示設定到UI
-  console.log('顯示設定到UI', rules);
+  // console.log('顯示設定到UI', rules);
   
   // 顯示字體設定
   renderFontSpecList(rules.fontSize);
@@ -42,7 +42,7 @@ async function loadSettings() {
   const spacingInput = document.getElementById('spacingValues');
   if (spacingInput) {
     spacingInput.value = rules.spacing.join(', ');
-    console.log('設定間距值:', rules.spacing.join(', '));
+    // console.log('設定間距值:', rules.spacing.join(', '));
   } else {
     console.error('找不到 spacingValues 元素');
   }
@@ -51,16 +51,16 @@ async function loadSettings() {
   const borderRadiusInput = document.getElementById('borderRadiusValues');
   if (borderRadiusInput) {
     borderRadiusInput.value = rules.borderRadius.join(', ');
-    console.log('設定圓角值:', rules.borderRadius.join(', '));
+    // console.log('設定圓角值:', rules.borderRadius.join(', '));
   } else {
     console.error('找不到 borderRadiusValues 元素');
   }
   
   // 顯示顏色設定
-  console.log('準備顯示顏色:', rules.colors);
+  // console.log('準備顯示顏色:', rules.colors);
   renderColorList(rules.colors);
   
-  console.log('設定載入完成');
+  // console.log('設定載入完成');
 }
 
 function setupEventListeners() {
