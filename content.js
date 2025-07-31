@@ -526,9 +526,11 @@ class SpecChecker {
     const styles = this.getElementStyles(element);
     const violations = this.checkViolations(styles);
     
-    let content = `<div style="color: #60a5fa; font-weight: bold; margin-bottom: 8px;">
-      ${element.tagName.toLowerCase()}${element.className ? '.' + element.className.split(' ').join('.') : ''}
-    </div>`;
+    // Create a temporary div to safely encode the element name and class
+    const headerDiv = document.createElement('div');
+    headerDiv.textContent = `${element.tagName.toLowerCase()}${element.className ? '.' + element.className.split(' ').join('.') : ''}`;
+
+    let content = `<div style="color: #60a5fa; font-weight: bold; margin-bottom: 8px;">${headerDiv.innerHTML}</div>`;
     
     content += this.formatStyleInfo(styles);
     

@@ -100,6 +100,19 @@ MIT License
 
 ## 更新日誌
 
+### v1.3.1 - 安全性更新
+- **安全修復**: 修補了在工具提示（tooltip）顯示邏輯中的一個 DOM 型 XSS 漏洞，透過對元素 class 名稱進行適當的淨化處理。
+- **程式碼整理**: 從 `manifest.json` 的 `web_accessible_resources` 中移除了未被使用的 `tooltip.html`，以減少擴充功能的潛在攻擊面。
+
+### v1.3.0 - 重大安全修復
+- 修正過度權限問題：限制 host_permissions 為 http://*/* 和 https://*/*
+- 修正 XSS 風險：替換所有 innerHTML 為安全的 DOM 操作
+- 修正不安全的報告生成：使用 Blob + URL.createObjectURL 替代 document.write
+- 加強 JSON 輸入驗證：新增檔案大小、格式和內容驗證
+- 移除敏感日誌：清理所有 console.log 輸出
+- 新增 HTML 轉義函數防止注入攻擊
+- 提升整體安全等級，現已適合生產環境使用
+
 ### v1.2.0
 - 修復設定頁面預設值顯示問題，同步 content.js 和 settings.js 的 getDefaultRules
 - 新增匯入匯出設定功能，可備份和分享設定檔案
