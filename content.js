@@ -7,6 +7,8 @@ class SpecChecker {
     this.spacingOverlay = null;
     this.specRules = {};
     this.scanResults = null;
+    this.lastScreenshotTime = 0;
+    this.screenshotCooldown = 2000; // 2秒冷卻時間
     
     this.init();
   }
@@ -46,7 +48,7 @@ class SpecChecker {
       ],
       spacing: [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64],
       borderRadius: [0, 4, 8, 12, 16, 28, 36],
-      colors: ['#0C0E1F', '#494A57', '#AEAFB4', '#0093C1', '#00A59B', '#F5693D', '#551E0D', '#FCF1ED']
+      colors: ['#0c0e1f', '#494a57', '#aeafb4', '#0093c1', '#00a59b', '#f5693d', '#551e0d', '#fcf1ed']
     };
   }
 
@@ -77,7 +79,7 @@ class SpecChecker {
     document.addEventListener('click', this.handleClick.bind(this));
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
     
-    this.showNotification('SpecChecker 已啟用 - 滑鼠懸停檢視樣式，按 ESC 退出');
+    this.showNotification('SpecChecker 已啟用 - 滑鼠懸停檢視樣式，點擊截圖，按 ESC 退出');
   }
 
   disable() {
@@ -119,9 +121,16 @@ class SpecChecker {
     event.preventDefault();
     event.stopPropagation();
     
-    const styles = this.getElementStyles(event.target);
-    this.copyToClipboard(JSON.stringify(styles, null, 2));
-    this.showNotification('樣式已複製到剪貼簿');
+    // 防抖動檢查
+    const now = Date.now();
+    if (now - this.lastScreenshotTime < this.screenshotCooldown) {
+      const remainingTime = Math.ceil((this.screenshotCooldown - (now - this.lastScreenshotTime)) / 1000);
+      this.showNotification(`請等待 ${remainingTime} 秒後再截圖`);
+      return;
+    }
+    
+    this.lastScreenshotTime = now;
+    this.takeScreenshot();
   }
 
   handleKeyDown(event) {
@@ -565,6 +574,7 @@ class SpecChecker {
       lineHeight: computed.lineHeight,
       color: this.rgbToHex(computed.color),
       backgroundColor: this.rgbToHex(computed.backgroundColor),
+      borderColor: this.rgbToHex(computed.borderColor),
       padding: {
         top: parseFloat(computed.paddingTop),
         right: parseFloat(computed.paddingRight),
@@ -634,6 +644,7 @@ class SpecChecker {
       <div><span style="color: #9ca3af;">字體:</span> ${styles.fontSize}px / ${styles.fontWeight} / ${styles.lineHeight}</div>
       <div><span style="color: #9ca3af;">顏色:</span> ${styles.color}</div>
       <div><span style="color: #9ca3af;">背景:</span> ${styles.backgroundColor}</div>
+      <div><span style="color: #9ca3af;">邊框:</span> ${styles.borderColor}</div>
       <div><span style="color: #9ca3af;">內距:</span> <span style="color: #3b82f6;">■</span> ${styles.padding.top}px ${styles.padding.right}px ${styles.padding.bottom}px ${styles.padding.left}px</div>
       <div><span style="color: #9ca3af;">外距:</span> <span style="color: #f59e0b;">■</span> ${styles.margin.top}px ${styles.margin.right}px ${styles.margin.bottom}px ${styles.margin.left}px</div>
       ${gapInfo}
@@ -751,6 +762,7 @@ class SpecChecker {
     if (this.specRules.colors && this.specRules.colors.length > 0) {
       const textColor = styles.color.toLowerCase();
       const bgColor = styles.backgroundColor.toLowerCase();
+      const borderColor = styles.borderColor.toLowerCase();
       
       if (textColor !== 'transparent' && !this.specRules.colors.includes(textColor)) {
         violations.push(`文字顏色 ${textColor} 不在標準色彩清單中`);
@@ -758,6 +770,10 @@ class SpecChecker {
       
       if (bgColor !== 'transparent' && !this.specRules.colors.includes(bgColor)) {
         violations.push(`背景顏色 ${bgColor} 不在標準色彩清單中`);
+      }
+      
+      if (borderColor !== 'transparent' && borderColor !== '#000000' && !this.specRules.colors.includes(borderColor)) {
+        violations.push(`邊框顏色 ${borderColor} 不在標準色彩清單中`);
       }
     }
     
@@ -935,6 +951,54 @@ class SpecChecker {
     setTimeout(() => {
       notification.remove();
     }, 3000);
+  }
+
+
+  async takeScreenshot() {
+    try {
+      this.showNotification('正在截圖...');
+      
+      // 使用 Chrome 擴充功能的截圖 API
+      chrome.runtime.sendMessage({
+        action: 'captureVisibleTab'
+      }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Runtime error:', chrome.runtime.lastError);
+          this.showNotification('截圖失敗：' + chrome.runtime.lastError.message);
+          return;
+        }
+        
+        if (response && response.dataUrl) {
+          // 使用下載 API 讓用戶選擇保存位置
+          chrome.runtime.sendMessage({
+            action: 'downloadScreenshot',
+            dataUrl: response.dataUrl
+          }, (downloadResponse) => {
+            if (chrome.runtime.lastError) {
+              console.error('Download error:', chrome.runtime.lastError);
+              this.showNotification('下載失敗：' + chrome.runtime.lastError.message);
+            } else if (downloadResponse && downloadResponse.success) {
+              this.showNotification('截圖已下載！請選擇保存位置');
+            } else if (downloadResponse && downloadResponse.error) {
+              console.error('Download error:', downloadResponse.error);
+              this.showNotification('下載失敗：' + downloadResponse.error);
+            } else {
+              this.showNotification('下載失敗：未知錯誤');
+            }
+          });
+        } else if (response && response.error) {
+          console.error('Background error:', response.error);
+          this.showNotification('截圖失敗：' + response.error);
+        } else {
+          console.error('無效回應:', response);
+          this.showNotification('截圖失敗：無法獲取圖像');
+        }
+      });
+      
+    } catch (error) {
+      console.error('截圖失敗:', error);
+      this.showNotification('截圖失敗: ' + error.message);
+    }
   }
 }
 

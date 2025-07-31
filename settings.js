@@ -5,56 +5,62 @@ document.addEventListener('DOMContentLoaded', async () => {
   const manifest = chrome.runtime.getManifest();
   versionElement.textContent = `v${manifest.version}`;
   
-  await loadSettings();
+  // 確保先初始化事件監聽器
   setupEventListeners();
   setupButtonListeners();
   setupColorListListener();
   setupFontSpecListListener();
+  
+  // 載入設定（如果沒有設定會自動建立預設值）
+  await loadSettings();
 });
 
 async function loadSettings() {
+  console.log('正在載入設定...');
+  
+  // 先獲取預設值
+  const defaultRules = getDefaultRules();
+  console.log('預設規則:', defaultRules);
+  
+  // 從儲存中讀取設定
   const result = await chrome.storage.sync.get(['specRules']);
-  const rules = result.specRules || getDefaultRules();
+  let rules = result.specRules;
+  console.log('從儲存讀取的規則:', rules);
   
-  // 處理新的字體格式，兼容舊格式
-  let fontSpecs = rules.fontSize;
-  if (!Array.isArray(fontSpecs)) {
-    if (typeof fontSpecs === 'object' && fontSpecs.min && fontSpecs.max) {
-      // 兼容舊的 min/max 格式
-      fontSpecs = getDefaultRules().fontSize;
-    } else if (Array.isArray(fontSpecs)) {
-      // 兼容舊的數字數組格式
-      fontSpecs = fontSpecs.map(size => ({ size, lineHeight: Math.round(size * 1.4) }));
-    } else {
-      fontSpecs = getDefaultRules().fontSize;
-    }
+  // 強制使用預設值（臨時解決方案 - 直到問題解決）
+  console.log('強制使用預設值');
+  rules = defaultRules;
+  await chrome.storage.sync.set({ specRules: rules });
+  
+  // 顯示設定到UI
+  console.log('顯示設定到UI', rules);
+  
+  // 顯示字體設定
+  renderFontSpecList(rules.fontSize);
+  
+  // 顯示間距設定
+  const spacingInput = document.getElementById('spacingValues');
+  if (spacingInput) {
+    spacingInput.value = rules.spacing.join(', ');
+    console.log('設定間距值:', rules.spacing.join(', '));
+  } else {
+    console.error('找不到 spacingValues 元素');
   }
   
-  renderFontSpecList(fontSpecs);
-  
-  // 處理新的間距格式，兼容舊格式
-  let spacingValues = rules.spacing;
-  if (!spacingValues && rules.padding) {
-    // 兼容舊格式，從舊的 padding/margin 範圍生成預設值
-    spacingValues = [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64];
+  // 顯示圓角設定
+  const borderRadiusInput = document.getElementById('borderRadiusValues');
+  if (borderRadiusInput) {
+    borderRadiusInput.value = rules.borderRadius.join(', ');
+    console.log('設定圓角值:', rules.borderRadius.join(', '));
+  } else {
+    console.error('找不到 borderRadiusValues 元素');
   }
   
-  if (Array.isArray(spacingValues)) {
-    document.getElementById('spacingValues').value = spacingValues.join(', ');
-  }
-  
-  // 處理圓角格式
-  let borderRadiusValues = rules.borderRadius;
-  if (!borderRadiusValues) {
-    // 如果沒有圓角規範，使用預設值
-    borderRadiusValues = [0, 2, 4, 6, 8, 12, 16, 20, 24];
-  }
-  
-  if (Array.isArray(borderRadiusValues)) {
-    document.getElementById('borderRadiusValues').value = borderRadiusValues.join(', ');
-  }
-  
+  // 顯示顏色設定
+  console.log('準備顯示顏色:', rules.colors);
   renderColorList(rules.colors);
+  
+  console.log('設定載入完成');
 }
 
 function setupEventListeners() {
@@ -92,12 +98,16 @@ function getDefaultRules() {
     ],
     spacing: [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64],
     borderRadius: [0, 4, 8, 12, 16, 28, 36],
-    colors: ['#0C0E1F', '#494A57', '#AEAFB4', '#0093C1', '#00A59B', '#F5693D', '#551E0D', '#FCF1ED']
+    colors: ['#0c0e1f', '#494a57', '#aeafb4', '#0093c1', '#00a59b', '#f5693d', '#551e0d', '#fcf1ed']
   };
 }
 
 function renderFontSpecList(fontSpecs) {
   const fontSpecList = document.getElementById('fontSpecList');
+  if (!fontSpecList) {
+    console.error('找不到 fontSpecList 元素');
+    return;
+  }
   fontSpecList.textContent = '';
   
   fontSpecs.forEach((spec, index) => {
@@ -159,6 +169,10 @@ function renderFontSpecList(fontSpecs) {
 
 function renderColorList(colors) {
   const colorList = document.getElementById('colorList');
+  if (!colorList) {
+    console.error('找不到 colorList 元素');
+    return;
+  }
   colorList.textContent = '';
   
   colors.forEach((color, index) => {
@@ -221,12 +235,13 @@ async function addColor() {
     const result = await chrome.storage.sync.get(['specRules']);
     const rules = result.specRules || getDefaultRules();
     
-    if (rules.colors.includes(color.toLowerCase())) {
+    const normalizedColor = color.toLowerCase();
+    if (rules.colors.includes(normalizedColor)) {
       alert('此顏色已存在於清單中');
       return;
     }
     
-    rules.colors.push(color.toLowerCase());
+    rules.colors.push(normalizedColor);
     await chrome.storage.sync.set({ specRules: rules });
     
     renderColorList(rules.colors);
@@ -258,6 +273,10 @@ async function removeColor(index) {
 function isValidColor(color) {
   const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
   return hexRegex.test(color);
+}
+
+function normalizeColor(color) {
+  return color.toLowerCase();
 }
 
 async function saveSettings() {
@@ -382,13 +401,12 @@ async function saveSettings() {
   }
 }
 
-function resetToDefault() {
+async function resetToDefault() {
   if (confirm('確定要重設為預設值嗎？')) {
     const defaultRules = getDefaultRules();
-    chrome.storage.sync.set({ specRules: defaultRules }, () => {
-      loadSettings();
-      showNotification('已重設為預設值');
-    });
+    await chrome.storage.sync.set({ specRules: defaultRules });
+    await loadSettings();
+    showNotification('已重設為預設值');
   }
 }
 
