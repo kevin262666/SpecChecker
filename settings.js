@@ -27,10 +27,11 @@ async function loadSettings() {
   let rules = result.specRules;
   // console.log('從儲存讀取的規則:', rules);
   
-  // 強制使用預設值（臨時解決方案 - 直到問題解決）
-  // console.log('強制使用預設值');
-  rules = defaultRules;
-  await chrome.storage.sync.set({ specRules: rules });
+  // 如果沒有設定，使用預設值
+  if (!rules) {
+    rules = defaultRules;
+    await chrome.storage.sync.set({ specRules: rules });
+  }
   
   // 顯示設定到UI
   // console.log('顯示設定到UI', rules);

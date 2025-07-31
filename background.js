@@ -1,11 +1,19 @@
 chrome.runtime.onInstalled.addListener(() => {
-  
+  // 使用與 content.js 和 settings.js 一致的預設值格式
   chrome.storage.sync.set({
     specRules: {
-      fontSize: { min: 12, max: 72 },
-      padding: { min: 4, max: 48 },
-      margin: { min: 0, max: 64 },
-      colors: ['#000000', '#ffffff', '#333333']
+      fontSize: [
+        { size: 12, lineHeight: 18 },
+        { size: 14, lineHeight: 21 },
+        { size: 16, lineHeight: 24 },
+        { size: 18, lineHeight: 22 },
+        { size: 20, lineHeight: 24 },
+        { size: 24, lineHeight: 30 },
+        { size: 32, lineHeight: 40 }
+      ],
+      spacing: [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64],
+      borderRadius: [0, 4, 8, 12, 16, 28, 36],
+      colors: ['#0c0e1f', '#494a57', '#aeafb4', '#0093c1', '#00a59b', '#f5693d', '#551e0d', '#fcf1ed']
     },
     isEnabled: true
   });
