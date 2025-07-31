@@ -16,8 +16,6 @@ class SpecChecker {
     this.isEnabled = result.isEnabled || false;
     this.specRules = result.specRules || this.getDefaultRules();
     
-    console.log('SpecChecker initialized with rules:', this.specRules);
-    console.log('Font specifications:', this.specRules.fontSize);
     
     if (this.isEnabled) {
       this.enable();
@@ -31,7 +29,6 @@ class SpecChecker {
     chrome.storage.onChanged.addListener((changes, namespace) => {
       if (namespace === 'sync' && changes.specRules) {
         this.specRules = changes.specRules.newValue;
-        console.log('SpecRules updated:', this.specRules);
       }
     });
   }
@@ -173,7 +170,6 @@ class SpecChecker {
     const styles = this.getElementStyles(element);
     const rect = element.getBoundingClientRect();
     
-    console.log('Showing spacing overlay for:', element, 'Padding:', styles.padding, 'Margin:', styles.margin);
     
     this.spacingOverlay.innerHTML = '';
     this.spacingOverlay.style.display = 'block';
@@ -352,7 +348,6 @@ class SpecChecker {
     
     if (children.length < 2) return;
     
-    console.log('Creating gap overlay for:', element, 'Display:', styles.display, 'Gap values:', styles.gap);
     
     const scrollX = window.scrollX;
     const scrollY = window.scrollY;
@@ -367,7 +362,6 @@ class SpecChecker {
       column: styles.gap.column || styles.gap.gap || 0
     };
     
-    console.log('Universal gap detection:', gaps);
     
     // 獲取所有子元素的位置信息
     const childData = children.map(child => ({
@@ -384,12 +378,6 @@ class SpecChecker {
       return topDiff;
     });
     
-    console.log('Child positions:', childData.map(c => ({ 
-      top: c.rect.top, 
-      left: c.rect.left, 
-      width: c.rect.width, 
-      height: c.rect.height 
-    })));
     
     // 檢測所有可能的間隙
     const detectedGaps = [];
@@ -449,12 +437,9 @@ class SpecChecker {
       }
     });
     
-    console.log('Detected gaps:', detectedGaps);
-    console.log('Unique gaps:', uniqueGaps);
     
     // 如果沒有檢測到間隙，使用簡化的備用方法
     if (uniqueGaps.length === 0 && (gaps.row > 0 || gaps.column > 0)) {
-      console.log('Using fallback gap detection');
       this.createFallbackGaps(childData, gaps, scrollX, scrollY);
       return;
     }
@@ -484,7 +469,6 @@ class SpecChecker {
   }
 
   createFallbackGaps(childData, gaps, scrollX, scrollY) {
-    console.log('Fallback gap detection with:', gaps);
     
     // 簡單的相鄰元素檢測
     for (let i = 0; i < childData.length - 1; i++) {
@@ -507,7 +491,6 @@ class SpecChecker {
             box-sizing: border-box;
           `;
           this.spacingOverlay.appendChild(gapElement);
-          console.log('Created fallback horizontal gap:', gapWidth);
         }
       }
       
@@ -527,7 +510,6 @@ class SpecChecker {
             box-sizing: border-box;
           `;
           this.spacingOverlay.appendChild(gapElement);
-          console.log('Created fallback vertical gap:', gapHeight);
         }
       }
     }
@@ -665,7 +647,6 @@ class SpecChecker {
     if (this.specRules.fontSize && Array.isArray(this.specRules.fontSize)) {
       // 檢查新格式（包含 size 和 lineHeight 的物件）
       if (this.specRules.fontSize.length > 0 && typeof this.specRules.fontSize[0] === 'object' && this.specRules.fontSize[0].size) {
-        console.log(`字體檢查: 大小=${styles.fontSize}px, 原始行高=${styles.lineHeight}`);
         
         // 檢查字體大小是否為整數
         if (styles.fontSize !== Math.floor(styles.fontSize)) {
@@ -679,7 +660,6 @@ class SpecChecker {
           } else {
             // 檢查行高
             const actualLineHeight = this.parseLineHeight(styles.lineHeight, styles.fontSize);
-            console.log(`行高檢查: 實際=${actualLineHeight}px, 期望=${fontSpec.lineHeight}px`);
             if (actualLineHeight !== fontSpec.lineHeight) {
               violations.push(`字體大小 ${styles.fontSize}px 的行高應為 ${fontSpec.lineHeight}px，實際為 ${actualLineHeight}px`);
             }
@@ -834,16 +814,50 @@ class SpecChecker {
       return;
     }
     
-    const reportWindow = window.open('', '_blank', 'width=800,height=600');
-    reportWindow.document.write(this.generateReportHTML());
+    // 使用 Blob 和 URL 替代不安全的 document.write
+    const reportHTML = this.generateReportHTML();
+    const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const reportWindow = window.open(url, '_blank', 'width=800,height=600');
+    
+    // 清理 URL 物件以釋放記憶體
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
   }
 
   generateReportHTML() {
+    // HTML 轉義函數
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    
+    const checkedElements = parseInt(this.scanResults.checkedElements) || 0;
+    const issuesCount = Array.isArray(this.scanResults.issues) ? this.scanResults.issues.length : 0;
+    
+    const issuesHTML = Array.isArray(this.scanResults.issues) 
+      ? this.scanResults.issues.map(issue => {
+          const elementText = escapeHtml(issue.element || '');
+          const violationsHTML = Array.isArray(issue.violations)
+            ? issue.violations.map(v => `<div class="violation">• ${escapeHtml(v)}</div>`).join('')
+            : '';
+          return `
+            <div class="issue">
+              <div class="issue-header">${elementText}</div>
+              ${violationsHTML}
+            </div>
+          `;
+        }).join('')
+      : '';
+    
     return `
       <!DOCTYPE html>
       <html>
       <head>
         <title>SpecChecker 檢查報告</title>
+        <meta charset="utf-8">
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; }
           .header { border-bottom: 2px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 24px; }
@@ -856,23 +870,18 @@ class SpecChecker {
       <body>
         <div class="header">
           <h1>SpecChecker 檢查報告</h1>
-          <p>檢查時間: ${new Date().toLocaleString('zh-TW')}</p>
+          <p>檢查時間: ${escapeHtml(new Date().toLocaleString('zh-TW'))}</p>
         </div>
         
         <div class="summary">
           <h2>檢查摘要</h2>
-          <p>已檢查元素: ${this.scanResults.checkedElements} 個</p>
-          <p>發現問題: ${this.scanResults.issues.length} 個</p>
+          <p>已檢查元素: ${checkedElements} 個</p>
+          <p>發現問題: ${issuesCount} 個</p>
         </div>
         
         <div class="issues">
           <h2>問題詳情</h2>
-          ${this.scanResults.issues.map(issue => `
-            <div class="issue">
-              <div class="issue-header">${issue.element}</div>
-              ${issue.violations.map(v => `<div class="violation">• ${v}</div>`).join('')}
-            </div>
-          `).join('')}
+          ${issuesHTML}
         </div>
       </body>
       </html>

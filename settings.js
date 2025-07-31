@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('Settings page loaded');
   
   // 顯示版本號
   const versionElement = document.getElementById('version');
@@ -99,38 +98,91 @@ function getDefaultRules() {
 
 function renderFontSpecList(fontSpecs) {
   const fontSpecList = document.getElementById('fontSpecList');
-  fontSpecList.innerHTML = '';
+  fontSpecList.textContent = '';
   
   fontSpecs.forEach((spec, index) => {
     const fontSpecItem = document.createElement('div');
     fontSpecItem.className = 'font-spec-item';
-    fontSpecItem.innerHTML = `
-      <div class="font-spec-label">字級</div>
-      <input type="number" class="font-spec-input" data-field="size" data-index="${index}" 
-             value="${spec.size}" min="1" placeholder="字體大小">
-      <div class="font-spec-label">px</div>
-      <div class="font-spec-label">行高</div>
-      <input type="number" class="font-spec-input" data-field="lineHeight" data-index="${index}" 
-             value="${spec.lineHeight}" min="1" placeholder="行高">
-      <div class="font-spec-label">px</div>
-      <button class="font-spec-remove" data-index="${index}" title="移除">×</button>
-    `;
+    
+    // 安全地創建 DOM 元素
+    const sizeLabel = document.createElement('div');
+    sizeLabel.className = 'font-spec-label';
+    sizeLabel.textContent = '字級';
+    
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'number';
+    sizeInput.className = 'font-spec-input';
+    sizeInput.setAttribute('data-field', 'size');
+    sizeInput.setAttribute('data-index', index.toString());
+    sizeInput.value = spec.size.toString();
+    sizeInput.min = '1';
+    sizeInput.placeholder = '字體大小';
+    
+    const pxLabel1 = document.createElement('div');
+    pxLabel1.className = 'font-spec-label';
+    pxLabel1.textContent = 'px';
+    
+    const lineHeightLabel = document.createElement('div');
+    lineHeightLabel.className = 'font-spec-label';
+    lineHeightLabel.textContent = '行高';
+    
+    const lineHeightInput = document.createElement('input');
+    lineHeightInput.type = 'number';
+    lineHeightInput.className = 'font-spec-input';
+    lineHeightInput.setAttribute('data-field', 'lineHeight');
+    lineHeightInput.setAttribute('data-index', index.toString());
+    lineHeightInput.value = spec.lineHeight.toString();
+    lineHeightInput.min = '1';
+    lineHeightInput.placeholder = '行高';
+    
+    const pxLabel2 = document.createElement('div');
+    pxLabel2.className = 'font-spec-label';
+    pxLabel2.textContent = 'px';
+    
+    const removeButton = document.createElement('button');
+    removeButton.className = 'font-spec-remove';
+    removeButton.setAttribute('data-index', index.toString());
+    removeButton.title = '移除';
+    removeButton.textContent = '×';
+    
+    fontSpecItem.appendChild(sizeLabel);
+    fontSpecItem.appendChild(sizeInput);
+    fontSpecItem.appendChild(pxLabel1);
+    fontSpecItem.appendChild(lineHeightLabel);
+    fontSpecItem.appendChild(lineHeightInput);
+    fontSpecItem.appendChild(pxLabel2);
+    fontSpecItem.appendChild(removeButton);
+    
     fontSpecList.appendChild(fontSpecItem);
   });
 }
 
 function renderColorList(colors) {
   const colorList = document.getElementById('colorList');
-  colorList.innerHTML = '';
+  colorList.textContent = '';
   
   colors.forEach((color, index) => {
     const colorItem = document.createElement('div');
     colorItem.className = 'color-item';
-    colorItem.innerHTML = `
-      <div class="color-preview" style="background-color: ${color}"></div>
-      <span>${color}</span>
-      <button class="color-remove" data-index="${index}" title="移除">×</button>
-    `;
+    
+    // 安全地創建 DOM 元素
+    const colorPreview = document.createElement('div');
+    colorPreview.className = 'color-preview';
+    colorPreview.style.backgroundColor = color;
+    
+    const colorSpan = document.createElement('span');
+    colorSpan.textContent = color;
+    
+    const removeButton = document.createElement('button');
+    removeButton.className = 'color-remove';
+    removeButton.setAttribute('data-index', index.toString());
+    removeButton.title = '移除';
+    removeButton.textContent = '×';
+    
+    colorItem.appendChild(colorPreview);
+    colorItem.appendChild(colorSpan);
+    colorItem.appendChild(removeButton);
+    
     colorList.appendChild(colorItem);
   });
 }
@@ -146,18 +198,15 @@ function setupColorListListener() {
       }
     });
     colorList.setAttribute('data-listener-added', 'true');
-    console.log('Color list click listener added');
   }
 }
 
 async function addColor() {
   try {
-    console.log('Adding color...');
     
     const colorInput = document.getElementById('colorInput');
     const color = colorInput.value.trim();
     
-    console.log('Color to add:', color);
     
     if (!color) {
       alert('請輸入顏色值');
@@ -180,7 +229,6 @@ async function addColor() {
     rules.colors.push(color.toLowerCase());
     await chrome.storage.sync.set({ specRules: rules });
     
-    console.log('Color added successfully');
     renderColorList(rules.colors);
     colorInput.value = '';
     showNotification('顏色已新增');
@@ -192,7 +240,6 @@ async function addColor() {
 
 async function removeColor(index) {
   try {
-    console.log('Removing color at index:', index);
     
     const result = await chrome.storage.sync.get(['specRules']);
     const rules = result.specRules || getDefaultRules();
@@ -215,7 +262,6 @@ function isValidColor(color) {
 
 async function saveSettings() {
   try {
-    console.log('Saving settings...');
     
     const spacingInput = document.getElementById('spacingValues').value.trim();
     const borderRadiusInput = document.getElementById('borderRadiusValues').value.trim();
@@ -253,7 +299,6 @@ async function saveSettings() {
       return;
     }
     
-    console.log('Font specs:', fontSpecs);
     
     // 解析間距數值
     let spacingValues = [];
@@ -328,10 +373,8 @@ async function saveSettings() {
     if (rules.padding) delete rules.padding;
     if (rules.margin) delete rules.margin;
     
-    console.log('Saving rules:', rules);
     
     await chrome.storage.sync.set({ specRules: rules });
-    console.log('Settings saved successfully');
     showNotification('設定已儲存！');
   } catch (error) {
     console.error('Error saving settings:', error);
@@ -350,13 +393,11 @@ function resetToDefault() {
 }
 
 function setupButtonListeners() {
-  console.log('Setting up button listeners');
   
   // 儲存設定按鈕
   const saveBtn = document.getElementById('saveBtn');
   if (saveBtn) {
     saveBtn.addEventListener('click', saveSettings);
-    console.log('Save button listener added');
   } else {
     console.error('Save button not found');
   }
@@ -365,7 +406,6 @@ function setupButtonListeners() {
   const resetBtn = document.getElementById('resetBtn');
   if (resetBtn) {
     resetBtn.addEventListener('click', resetToDefault);
-    console.log('Reset button listener added');
   } else {
     console.error('Reset button not found');
   }
@@ -374,7 +414,6 @@ function setupButtonListeners() {
   const addFontSpecBtn = document.getElementById('addFontSpecBtn');
   if (addFontSpecBtn) {
     addFontSpecBtn.addEventListener('click', addFontSpec);
-    console.log('Add font spec button listener added');
   } else {
     console.error('Add font spec button not found');
   }
@@ -383,7 +422,6 @@ function setupButtonListeners() {
   const addColorBtn = document.getElementById('addColorBtn');
   if (addColorBtn) {
     addColorBtn.addEventListener('click', addColor);
-    console.log('Add color button listener added');
   } else {
     console.error('Add color button not found');
   }
@@ -392,7 +430,6 @@ function setupButtonListeners() {
   const exportBtn = document.getElementById('exportBtn');
   if (exportBtn) {
     exportBtn.addEventListener('click', exportSettings);
-    console.log('Export button listener added');
   } else {
     console.error('Export button not found');
   }
@@ -403,7 +440,6 @@ function setupButtonListeners() {
   if (importBtn && importFile) {
     importBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', importSettings);
-    console.log('Import button listener added');
   } else {
     console.error('Import button or file input not found');
   }
@@ -426,7 +462,6 @@ function setupFontSpecListListener() {
     });
     
     fontSpecList.setAttribute('data-listener-added', 'true');
-    console.log('Font spec list listeners added');
   }
 }
 
@@ -479,7 +514,6 @@ function updateFontSpec(input) {
   if (!currentFontSpecs[index]) return;
   
   currentFontSpecs[index][field] = value;
-  console.log('Updated font spec:', currentFontSpecs[index]);
 }
 
 async function exportSettings() {
@@ -517,30 +551,123 @@ async function importSettings(event) {
     const file = event.target.files[0];
     if (!file) return;
     
+    // 檔案大小限制 (1MB)
+    if (file.size > 1024 * 1024) {
+      throw new Error('檔案大小超過 1MB 限制');
+    }
+    
+    // 檔案類型檢查
+    if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+      throw new Error('請選擇 JSON 格式的設定檔案');
+    }
+    
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const importData = JSON.parse(e.target.result);
+        const jsonText = e.target.result;
+        
+        // 檢查內容長度
+        if (!jsonText || jsonText.length === 0) {
+          throw new Error('檔案內容為空');
+        }
+        
+        if (jsonText.length > 100000) {
+          throw new Error('檔案內容過大');
+        }
+        
+        // 安全的 JSON 解析
+        let importData;
+        try {
+          importData = JSON.parse(jsonText);
+        } catch (parseError) {
+          throw new Error('JSON 格式錯誤: ' + parseError.message);
+        }
+        
+        // 基本類型驗證
+        if (typeof importData !== 'object' || importData === null) {
+          throw new Error('無效的設定檔案格式：根對象必須是物件');
+        }
         
         // 驗證檔案格式
-        if (!importData.settings) {
-          throw new Error('無效的設定檔案格式');
+        if (!importData.hasOwnProperty('settings') || typeof importData.settings !== 'object') {
+          throw new Error('無效的設定檔案格式：缺少 settings 物件');
         }
         
         const settings = importData.settings;
         
-        // 基本驗證
-        if (!settings.fontSize || !Array.isArray(settings.fontSize)) {
-          throw new Error('字體規範格式錯誤');
+        // 嚴格驗證每個屬性
+        if (!settings.hasOwnProperty('fontSize') || !Array.isArray(settings.fontSize)) {
+          throw new Error('字體規範格式錯誤：fontSize 必須是陣列');
         }
-        if (!settings.spacing || !Array.isArray(settings.spacing)) {
-          throw new Error('間距規範格式錯誤');
+        
+        // 驗證字體規範內容
+        if (settings.fontSize.length === 0 || settings.fontSize.length > 50) {
+          throw new Error('字體規範數量異常');
         }
-        if (!settings.borderRadius || !Array.isArray(settings.borderRadius)) {
-          throw new Error('圓角規範格式錯誤');
+        
+        for (let i = 0; i < settings.fontSize.length; i++) {
+          const spec = settings.fontSize[i];
+          if (typeof spec !== 'object' || spec === null) {
+            throw new Error(`字體規範項目 ${i + 1} 格式錯誤`);
+          }
+          if (typeof spec.size !== 'number' || spec.size < 1 || spec.size > 200) {
+            throw new Error(`字體規範項目 ${i + 1} 的字體大小無效`);
+          }
+          if (typeof spec.lineHeight !== 'number' || spec.lineHeight < 1 || spec.lineHeight > 500) {
+            throw new Error(`字體規範項目 ${i + 1} 的行高無效`);
+          }
         }
-        if (!settings.colors || !Array.isArray(settings.colors)) {
-          throw new Error('色彩規範格式錯誤');
+        
+        if (!settings.hasOwnProperty('spacing') || !Array.isArray(settings.spacing)) {
+          throw new Error('間距規範格式錯誤：spacing 必須是陣列');
+        }
+        
+        // 驗證間距規範
+        if (settings.spacing.length === 0 || settings.spacing.length > 100) {
+          throw new Error('間距規範數量異常');
+        }
+        
+        for (let i = 0; i < settings.spacing.length; i++) {
+          if (typeof settings.spacing[i] !== 'number' || settings.spacing[i] < 0 || settings.spacing[i] > 1000) {
+            throw new Error(`間距規範項目 ${i + 1} 的值無效`);
+          }
+        }
+        
+        if (!settings.hasOwnProperty('borderRadius') || !Array.isArray(settings.borderRadius)) {
+          throw new Error('圓角規範格式錯誤：borderRadius 必須是陣列');
+        }
+        
+        // 驗證圓角規範
+        if (settings.borderRadius.length === 0 || settings.borderRadius.length > 50) {
+          throw new Error('圓角規範數量異常');
+        }
+        
+        for (let i = 0; i < settings.borderRadius.length; i++) {
+          if (typeof settings.borderRadius[i] !== 'number' || settings.borderRadius[i] < 0 || settings.borderRadius[i] > 200) {
+            throw new Error(`圓角規範項目 ${i + 1} 的值無效`);
+          }
+        }
+        
+        if (!settings.hasOwnProperty('colors') || !Array.isArray(settings.colors)) {
+          throw new Error('色彩規範格式錯誤：colors 必須是陣列');
+        }
+        
+        // 驗證色彩規範
+        if (settings.colors.length === 0 || settings.colors.length > 100) {
+          throw new Error('色彩規範數量異常');
+        }
+        
+        const colorRegex = /^#[0-9A-Fa-f]{6}$/;
+        for (let i = 0; i < settings.colors.length; i++) {
+          if (typeof settings.colors[i] !== 'string' || !colorRegex.test(settings.colors[i])) {
+            throw new Error(`色彩規範項目 ${i + 1} 的格式無效，必須是 #RRGGBB 格式`);
+          }
+        }
+        
+        // 清理和驗證版本資訊（如果存在）
+        let versionInfo = '';
+        if (importData.version && typeof importData.version === 'string') {
+          versionInfo = importData.version.slice(0, 20); // 限制版本字串長度
         }
         
         // 儲存設定
@@ -549,11 +676,14 @@ async function importSettings(event) {
         // 重新載入設定頁面
         await loadSettings();
         
-        showNotification(`設定已匯入${importData.version ? ` (版本: ${importData.version})` : ''}`);
+        showNotification(`設定已匯入${versionInfo ? ` (版本: ${versionInfo})` : ''}`);
       } catch (error) {
-        console.error('Error parsing import file:', error);
         alert('匯入設定時發生錯誤: ' + error.message);
       }
+    };
+    
+    reader.onerror = () => {
+      alert('讀取檔案時發生錯誤');
     };
     
     reader.readAsText(file);
@@ -561,7 +691,6 @@ async function importSettings(event) {
     // 清除檔案選擇
     event.target.value = '';
   } catch (error) {
-    console.error('Error importing settings:', error);
     alert('匯入設定時發生錯誤: ' + error.message);
   }
 }

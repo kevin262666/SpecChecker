@@ -1,5 +1,4 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('SpecChecker extension installed');
   
   chrome.storage.sync.set({
     specRules: {
