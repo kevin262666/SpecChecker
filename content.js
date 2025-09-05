@@ -100,6 +100,11 @@ class SpecChecker {
   handleMouseOver(event) {
     if (!this.isTooltipMode) return;
     
+    // 排除iframe元素本身，避免tooltip遮擋
+    if (event.target.tagName.toLowerCase() === 'iframe') {
+      return;
+    }
+    
     event.stopPropagation();
     this.highlightElement(event.target);
     this.showSpacingOverlay(event.target);
@@ -971,12 +976,6 @@ class SpecChecker {
 
   async takeScreenshot() {
     try {
-      // 如果在iframe中，通知用戶需要在主頁面進行截圖
-      if (this.isInIframe) {
-        this.showNotification('請在主頁面進行截圖操作');
-        return;
-      }
-      
       this.showNotification('正在截圖...');
       
       // 使用 Chrome 擴充功能的截圖 API

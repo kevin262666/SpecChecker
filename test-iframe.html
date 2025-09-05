@@ -164,8 +164,15 @@
             <li>啟用 SpecChecker 擴充功能</li>
             <li>在主頁面內容上移動滑鼠 - 應該能正常顯示 tooltip 和間距覆蓋層</li>
             <li>在 iframe 內容上移動滑鼠 - 現在也應該能顯示 tooltip 和間距覆蓋層</li>
-            <li>嘗試在 iframe 內點擊截圖 - 應該提示用戶需要在主頁面進行截圖</li>
+            <li>將滑鼠移動到 iframe 框架本身 - 不會顯示 tooltip，避免遮擋</li>
+            <li>在 iframe 內點擊任意元素 - 現在可以正常截圖了</li>
         </ol>
+        
+        <h4>v1.5.1 修復內容</h4>
+        <ul>
+            <li>✅ 修復：不再對 iframe 元素本身顯示 tooltip，避免遮擋內容</li>
+            <li>✅ 修復：移除 iframe 內截圖限制，現在可以在任何 frame 中截圖</li>
+        </ul>
     </div>
 </body>
 </html>
