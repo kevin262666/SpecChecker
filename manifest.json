@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SpecChecker",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "UI/UX design specification checker for frontend development",
   "permissions": [
     "activeTab",
@@ -28,7 +28,8 @@
       "matches": ["http://*/*", "https://*/*"],
       "js": ["content.js"],
       "css": ["content.css"],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "background": {

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpecChecker iframe 測試頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .main-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-element {
+            background-color: #0093c1;
+            color: white;
+            padding: 16px;
+            margin: 12px 0;
+            font-size: 18px;
+            border-radius: 8px;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #0c0e1f;
+            font-size: 32px;
+            line-height: 40px;
+            margin-bottom: 16px;
+        }
+        
+        .container {
+            display: flex;
+            gap: 16px;
+            margin: 20px 0;
+        }
+        
+        .card {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            color: #494a57;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SpecChecker iframe 測試</h1>
+    
+    <div class="main-content">
+        <h2>主頁面內容</h2>
+        <p>這是主頁面的內容。啟用 SpecChecker 後，您應該能夠檢查這些元素的樣式。</p>
+        
+        <div class="test-element">
+            測試元素 - 字體大小: 18px, padding: 16px, 背景色: #0093c1
+        </div>
+        
+        <div class="container">
+            <div class="card">
+                <h3>卡片 1</h3>
+                <p>這是一個測試卡片，使用了標準的間距和圓角。</p>
+            </div>
+            <div class="card">
+                <h3>卡片 2</h3>
+                <p>另一個測試卡片，用於驗證 flex gap 的檢測。</p>
+            </div>
+        </div>
+    </div>
+    
+    <h2>iframe 內嵌內容</h2>
+    <iframe src="data:text/html;charset=utf-8,<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #fcf1ed;
+        }
+        
+        .iframe-content {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .iframe-test-element {
+            background-color: #f5693d;
+            color: white;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        
+        .iframe-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .iframe-grid-item {
+            background: #aeafb4;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        h2 {
+            color: #551e0d;
+            font-size: 24px;
+            line-height: 30px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h2>iframe 內的內容</h2>
+    
+    <div class='iframe-content'>
+        <p>這是 iframe 內的內容。SpecChecker 現在應該能夠檢測這些元素。</p>
+        
+        <div class='iframe-test-element'>
+            iframe 測試元素 - 字體: 16px, padding: 12px, 背景色: #f5693d
+        </div>
+        
+        <div class='iframe-grid'>
+            <div class='iframe-grid-item'>格子 1</div>
+            <div class='iframe-grid-item'>格子 2</div>
+            <div class='iframe-grid-item'>格子 3</div>
+            <div class='iframe-grid-item'>格子 4</div>
+        </div>
+    </div>
+</body>
+</html>"></iframe>
+    
+    <div class="main-content">
+        <h3>測試說明</h3>
+        <ol>
+            <li>載入這個頁面到 Chrome 瀏覽器</li>
+            <li>啟用 SpecChecker 擴充功能</li>
+            <li>在主頁面內容上移動滑鼠 - 應該能正常顯示 tooltip 和間距覆蓋層</li>
+            <li>在 iframe 內容上移動滑鼠 - 現在也應該能顯示 tooltip 和間距覆蓋層</li>
+            <li>嘗試在 iframe 內點擊截圖 - 應該提示用戶需要在主頁面進行截圖</li>
+        </ol>
+    </div>
+</body>
+</html>

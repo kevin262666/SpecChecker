@@ -9,6 +9,7 @@ class SpecChecker {
     this.scanResults = null;
     this.lastScreenshotTime = 0;
     this.screenshotCooldown = 2000; // 2秒冷卻時間
+    this.isInIframe = window !== window.top;
     
     this.init();
   }
@@ -141,10 +142,10 @@ class SpecChecker {
 
   createTooltip() {
     this.tooltip = document.createElement('div');
-    this.tooltip.id = 'specchecker-tooltip';
+    this.tooltip.id = 'specchecker-tooltip' + (this.isInIframe ? '-iframe' : '');
     this.tooltip.style.cssText = `
-      position: fixed;
-      z-index: 999999;
+      position: ${this.isInIframe ? 'absolute' : 'fixed'};
+      z-index: 2147483647;
       background: #1f2937;
       color: white;
       padding: 12px;
@@ -163,10 +164,10 @@ class SpecChecker {
 
   createSpacingOverlay() {
     this.spacingOverlay = document.createElement('div');
-    this.spacingOverlay.id = 'specchecker-spacing-overlay';
+    this.spacingOverlay.id = 'specchecker-spacing-overlay' + (this.isInIframe ? '-iframe' : '');
     this.spacingOverlay.style.cssText = `
       position: absolute;
-      z-index: 999998 !important;
+      z-index: 2147483646 !important;
       pointer-events: none !important;
       display: none;
       top: 0;
@@ -554,8 +555,17 @@ class SpecChecker {
     this.tooltip.style.display = 'block';
     
     const rect = this.tooltip.getBoundingClientRect();
-    const finalX = Math.min(x + 10, window.innerWidth - rect.width - 10);
-    const finalY = Math.min(y + 10, window.innerHeight - rect.height - 10);
+    let finalX, finalY;
+    
+    if (this.isInIframe) {
+      // 在iframe中使用絕對定位，需要加上滾動偏移
+      finalX = Math.min(x + 10 + window.scrollX, window.innerWidth + window.scrollX - rect.width - 10);
+      finalY = Math.min(y + 10 + window.scrollY, window.innerHeight + window.scrollY - rect.height - 10);
+    } else {
+      // 主框架中使用固定定位
+      finalX = Math.min(x + 10, window.innerWidth - rect.width - 10);
+      finalY = Math.min(y + 10, window.innerHeight - rect.height - 10);
+    }
     
     this.tooltip.style.left = finalX + 'px';
     this.tooltip.style.top = finalY + 'px';
@@ -796,7 +806,7 @@ class SpecChecker {
   }
 
   async scanPage() {
-    const elements = document.querySelectorAll('*:not(script):not(style):not(meta):not(link):not(#specchecker-tooltip):not(#specchecker-spacing-overlay)');
+    const elements = document.querySelectorAll('*:not(script):not(style):not(meta):not(link):not([id^="specchecker-"])');
     const issues = [];
     let checkedElements = 0;
     
@@ -932,11 +942,15 @@ class SpecChecker {
 
   showNotification(message) {
     const notification = document.createElement('div');
+    const position = this.isInIframe ? 'absolute' : 'fixed';
+    const top = this.isInIframe ? (window.scrollY + 20) + 'px' : '20px';
+    const right = this.isInIframe ? (window.scrollX + 20) + 'px' : '20px';
+    
     notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 1000000;
+      position: ${position};
+      top: ${top};
+      right: ${right};
+      z-index: 2147483647;
       background: #1f2937;
       color: white;
       padding: 12px 16px;
@@ -957,6 +971,12 @@ class SpecChecker {
 
   async takeScreenshot() {
     try {
+      // 如果在iframe中，通知用戶需要在主頁面進行截圖
+      if (this.isInIframe) {
+        this.showNotification('請在主頁面進行截圖操作');
+        return;
+      }
+      
       this.showNotification('正在截圖...');
       
       // 使用 Chrome 擴充功能的截圖 API
@@ -1003,9 +1023,12 @@ class SpecChecker {
   }
 }
 
-window.specCheckerActive = false;
+// 防止在同一個frame中重複初始化
+if (!window.specCheckerInstance) {
+  window.specCheckerActive = false;
 
-window.addEventListener('load', () => {
-  new SpecChecker();
-  window.specCheckerActive = true;
-});
+  window.addEventListener('load', () => {
+    window.specCheckerInstance = new SpecChecker();
+    window.specCheckerActive = true;
+  });
+}
